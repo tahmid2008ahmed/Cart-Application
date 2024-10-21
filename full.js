@@ -24,15 +24,34 @@ class ProductData {
   }
 
   findProduct(id) {
-    return this.products.find((product) => product.id === id); // Correctly find the product by id
+    return this.products.find((product) => product.id === id);
   }
 }
 
 const product = new ProductData();
 
-// --------------------------------------------
+class Storage {
+  static saveCart(cartItems) {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }
+
+  static loadCart() {
+    const savedCart = localStorage.getItem("cartItems");
+    return savedCart ? JSON.parse(savedCart) : [];
+  }
+
+  static clearCart() {
+    localStorage.removeItem("cartItems");
+  }
+}
+
 class Cart {
   items = [];
+
+  constructor() {
+    this.items = Storage.loadCart();
+    Storage.saveCart(this.items);
+  }
 
   addProduct(product) {
     const existingProduct = this.items.find((item) => item.id === product.id);
@@ -42,20 +61,27 @@ class Cart {
     } else {
       this.items.push({ ...product, quantity: 1 });
     }
+
+    Storage.saveCart(this.items);
   }
 
   removeProduct(productId) {
     this.items = this.items.filter((item) => item.id !== productId);
+    Storage.saveCart(this.items);
   }
 
   getCartItems() {
     return this.items;
   }
+
+  clearCart() {
+    this.items = [];
+    Storage.clearCart();
+  }
 }
 
 const cart = new Cart();
 
-// -------------------------------------------------
 class UI {
   loadSelectors() {
     return {
@@ -119,12 +145,12 @@ class UI {
     buttons.forEach((button) => {
       button.addEventListener("click", (e) => {
         const productId = e.target.getAttribute("data-product-id");
-        const productData = product.findProduct(productId); // Get the product data
+        const productData = product.findProduct(productId);
 
         if (productData) {
-          cart.addProduct(productData); // Add product to the cart
-          this.populateCartUI(); // Update cart UI
-          this.updateCartCount(); // Update count
+          cart.addProduct(productData);
+          this.populateCartUI();
+          this.updateCartCount();
         }
       });
     });
@@ -141,23 +167,29 @@ class UI {
       cartItemsElm.innerHTML =
         "<tr><td colspan='5'>Your cart is empty.</td></tr>";
     } else {
+      let totalCartPrice = 0;
+
       cartItems.forEach((item) => {
+        const itemPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, "")) || 0;
+        const itemTotalPrice = itemPrice * item.quantity;
+        totalCartPrice += itemTotalPrice;
+
         const cartItemHTML = `
           <tr>
             <td><img src="${item.image_url}" alt="${
           item.name
         }" style="width: 50px;"></td>
             <td>${item.name}</td>
-            <td>${item.price}</td>
+            <td>$${itemPrice}</td>
             <td>
-            <button class="quantity-btn minus" data-product-id="${
-              item.id
-            }">-</button>
-            <span class="quantity">${item.quantity || 1}</span>
-            <button class="quantity-btn plus" data-product-id="${
-              item.id
-            }">+</button>
-          </td>
+              <button class="quantity-btn minus" data-product-id="${
+                item.id
+              }">-</button>
+              <span class="quantity">${item.quantity || 1}</span>
+              <button class="quantity-btn plus" data-product-id="${
+                item.id
+              }">+</button>
+            </td>
             <td><button class="removeButton" data-product-id="${
               item.id
             }">Remove</button></td>
@@ -166,10 +198,16 @@ class UI {
         cartItemsElm.innerHTML += cartItemHTML;
       });
 
-      // Attach listeners for the plus and minus buttons
-      this.addCountQuantityButtonListeners();
+      const totalRowHTML = `
+        <tr>
+          <td colspan="2"></td>
+          <td><strong>Total:</strong></td>
+          <td colspan="2"><strong>$${totalCartPrice}</strong></td>
+        </tr>
+      `;
+      cartItemsElm.innerHTML += totalRowHTML;
 
-      // Attach remove buttons event listeners
+      this.addCountQuantityButtonListeners();
       this.addRemoveButtonListeners();
     }
   }
@@ -187,6 +225,7 @@ class UI {
 
         if (productInCart && productInCart.quantity > 1) {
           productInCart.quantity--;
+          cart.saveCart(); // Save to storage after changing quantity
           this.populateCartUI();
           this.updateCartCount();
         }
@@ -202,8 +241,52 @@ class UI {
 
         if (productInCart) {
           productInCart.quantity++;
+          cart.saveCart(); // Save to storage after changing quantity
           this.populateCartUI();
           this.updateCartCount();
+        }
+      });
+    });
+  }
+
+  addCountQuantityButtonListeners() {
+    const minusButtons = document.querySelectorAll(".minus");
+    const plusButtons = document.querySelectorAll(".plus");
+
+    // Adding event listeners for minus buttons
+    minusButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const productId = e.target.getAttribute("data-product-id");
+        const productInCart = cart
+          .getCartItems()
+          .find((item) => item.id == productId);
+
+        if (productInCart && productInCart.quantity > 1) {
+          productInCart.quantity--;
+          Storage.saveCart(cart.getCartItems());
+          this.populateCartUI();
+          this.updateCartCount();
+        } else if (productInCart && productInCart.quantity === 1) {
+          cart.removeProduct(productId);
+          this.populateCartUI();
+          this.updateCartCount();
+        }
+      });
+    });
+
+    // Adding event listeners for plus buttons
+    plusButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const productId = e.target.getAttribute("data-product-id");
+        const productInCart = cart
+          .getCartItems()
+          .find((item) => item.id == productId); // Use '==' to ensure type coercion
+
+        if (productInCart) {
+          productInCart.quantity++;
+          Storage.saveCart(cart.getCartItems()); // Save the updated cart to local storage
+          this.populateCartUI(); // Refresh the cart UI
+          this.updateCartCount(); // Update the cart count display
         }
       });
     });
@@ -214,16 +297,16 @@ class UI {
     removeButtons.forEach((button) => {
       button.addEventListener("click", (e) => {
         const productId = e.target.getAttribute("data-product-id");
-        cart.removeProduct(productId); // Remove the product from the cart
-        this.populateCartUI(); // Refresh the cart UI
-        this.updateCartCount(); // Update cart count
+        cart.removeProduct(productId);
+        this.populateCartUI();
+        this.updateCartCount();
       });
     });
   }
 
   showCartModal() {
     const { cartModalElm } = this.loadSelectors();
-    this.populateCartUI(); // Populate cart UI when showing the modal
+    this.populateCartUI();
     cartModalElm.style.display = "block";
   }
 
@@ -235,17 +318,20 @@ class UI {
   init() {
     const { cartIconElm, closeModalElm } = this.loadSelectors();
 
-    // Fetch products and populate UI
-    product.getProductsWithCategories().then((data) => {
-      this.populateProductsToUI(data);
+    document.addEventListener("DOMContentLoaded", () => {
+      product.getProductsWithCategories().then((data) => {
+        this.populateProductsToUI(data);
 
-      // Attach event listeners for "Add to Cart" buttons after products are loaded
-      this.addCartButtonListeners();
+        this.addCartButtonListeners();
+        this.updateCartCount();
+      });
+
+      this.updateCartCount();
     });
 
     // Show cart modal when cart icon is clicked
     cartIconElm.addEventListener("click", () => {
-      this.showCartModal(); // Simply show the modal
+      this.showCartModal();
     });
 
     // Close the modal when the close button is clicked
