@@ -1,0 +1,44 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Technology",
+      "products": [
+        {
+          "id": "1",
+          "name": "Mouse",
+          "price": "$20",
+          "description": "A mouse is a small device pushed across a surface.",
+          "image_url": "https://images-na.ssl-images-amazon.com/images/I/61KvrKMyRJL.__AC_SX300_SY300_QL70_FMwebp_.jpg"
+        },
+        {
+          "id": "2",
+          "name": "Laptop",
+          "price": "$200",
+          "description": "Laptops are designed to be portable computers.",
+          "image_url": "https://i.pinimg.com/enabled/236x/75/3c/ca/753ccad1a9c7f775eb6b4ac4c4e231a2.jpg"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Stationery",
+      "products": [
+        {
+          "id": "3",
+          "name": "Geometry box",
+          "price": "$15",
+          "description": "Geometry Box is a set of various instruments.",
+          "image_url": "https://i.pinimg.com/236x/bd/cf/a7/bdcfa723bf5eb97b00f4d5d0fb9cba21.jpg"
+        },
+        {
+          "id": "4",
+          "name": "Highlighter",
+          "price": "$8",
+          "description": "A highlighter, also called a fluorescent pen.",
+          "image_url": "https://i.pinimg.com/enabled/236x/2f/e7/92/2fe792f7f5d5fdb6908a89c016845189.jpg"
+        }
+      ]
+    }
+  ]
+}

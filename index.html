@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Page</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Product Store</h1>
+      <br />
+      <br />
+      <div class="cart-icon">
+        <img
+          src="https://i.pinimg.com/236x/65/d6/dd/65d6ddc76d5ddbf5788ba76205b8bec0.jpg"
+          alt="Cart Icon"
+        />
+        <span class="cart-count">0</span>
+      </div>
+    </header>
+    <main>
+      <section>
+        <!-- Cart Modal -->
+        <div id="cartModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Product in the Cart</h2>
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Count</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody id="cartItems">
+                <!-- Cart items will be populated here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <!-- Dynamic categories and products will be added here by JavaScript -->
+        <div class="category-container">
+          <!-- JavaScript will dynamically create category and product grids here -->
+        </div>
+      </section>
+    </main>
+
+    <script src="full.js"></script>
+  </body>
+</html>
