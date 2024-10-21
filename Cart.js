@@ -1,38 +1,36 @@
+import { storage, Storage } from "./Storage.js";
 class Cart {
   items = [];
 
-  addItem(product) {
-    const existingItem = this.items.find((item) => item.id === product.id);
-    if (existingItem) {
-      existingItem.count += 1;
+  constructor() {
+    this.items = Storage.loadCart();
+    Storage.saveCart(this.items);
+  }
+
+  addProduct(product) {
+    const existingProduct = this.items.find((item) => item.id === product.id);
+
+    if (existingProduct) {
+      existingProduct.quantity = (existingProduct.quantity || 1) + 1;
     } else {
-      this.items.push({ ...product, count: 1 });
+      this.items.push({ ...product, quantity: 1 });
     }
-    this.updateCartCount();
+
+    Storage.saveCart(this.items);
   }
 
-  updateItemCount(id, newCount) {
-    const item = this.items.find((item) => item.id === id);
-    if (item) {
-      item.count = newCount;
-      this.updateCartCount();
-    }
-  }
-
-  updateCartCount() {
-    document.querySelector(".cart-count").textContent = this.items.reduce(
-      (sum, item) => sum + item.count,
-      0
-    );
-  }
-
-  removeItem(id) {
-    this.items = this.items.filter((item) => item.id !== id);
-    this.updateCartCount();
+  removeProduct(productId) {
+    this.items = this.items.filter((item) => item.id !== productId);
+    Storage.saveCart(this.items);
   }
 
   getCartItems() {
     return this.items;
+  }
+
+  clearCart() {
+    this.items = [];
+    Storage.clearCart();
   }
 }
 

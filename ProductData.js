@@ -17,6 +17,7 @@ class ProductData {
   }
 
   collectProduct(categories) {
+    this.products = [];
     categories.forEach((category) => {
       this.products.push(...category.products);
     });
