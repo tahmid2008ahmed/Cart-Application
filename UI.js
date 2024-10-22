@@ -1,6 +1,6 @@
 import { product } from "./ProductData.js";
 import { cart } from "./Cart.js";
-import { storage } from "./Storage.js";
+import { Storage } from "./Storage.js";
 
 class UI {
   loadSelectors() {
@@ -52,10 +52,14 @@ class UI {
     const { cartCountElm } = this.loadSelectors();
     const cartItems = cart.getCartItems();
 
+    console.log("Cart items:", cartItems); // Debugging
+
     const totalCount = cartItems.reduce(
       (total, item) => total + item.quantity,
       0
     );
+
+    console.log("Total item count in cart:", totalCount); // Debugging
 
     cartCountElm.textContent = totalCount;
   }
@@ -133,83 +137,53 @@ class UI {
   }
 
   addCountQuantityButtonListeners() {
-    const minusButtons = document.querySelectorAll(".minus");
-    const plusButtons = document.querySelectorAll(".plus");
+    const { cartItemsElm } = this.loadSelectors();
 
-    minusButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const productId = e.target.getAttribute("data-product-id");
-        const productInCart = cart
-          .getCartItems()
-          .find((item) => item.id === productId);
+    // Remove previous event listener if already added
+    cartItemsElm.removeEventListener("click", this.handleCartQuantityChange);
 
-        if (productInCart && productInCart.quantity > 1) {
-          productInCart.quantity--;
-          cart.saveCart(); // Save to storage after changing quantity
-          this.populateCartUI();
-          this.updateCartCount();
-        }
-      });
-    });
+    // Use a named function for event delegation and add a single event listener
+    this.handleCartQuantityChange = (e) => {
+      const target = e.target;
 
-    plusButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const productId = e.target.getAttribute("data-product-id");
-        const productInCart = cart
-          .getCartItems()
-          .find((item) => item.id === productId);
-
-        if (productInCart) {
-          productInCart.quantity++;
-          cart.saveCart(); // Save to storage after changing quantity
-          this.populateCartUI();
-          this.updateCartCount();
-        }
-      });
-    });
-  }
-
-  addCountQuantityButtonListeners() {
-    const minusButtons = document.querySelectorAll(".minus");
-    const plusButtons = document.querySelectorAll(".plus");
-
-    // Adding event listeners for minus buttons
-    minusButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const productId = e.target.getAttribute("data-product-id");
+      // Minus button logic
+      if (target.classList.contains("minus")) {
+        const productId = target.getAttribute("data-product-id");
         const productInCart = cart
           .getCartItems()
           .find((item) => item.id == productId);
 
         if (productInCart && productInCart.quantity > 1) {
           productInCart.quantity--;
-          storage.saveCart(cart.getCartItems());
+          Storage.saveCart(cart.getCartItems());
           this.populateCartUI();
           this.updateCartCount();
         } else if (productInCart && productInCart.quantity === 1) {
           cart.removeProduct(productId);
+          Storage.saveCart(cart.getCartItems());
           this.populateCartUI();
           this.updateCartCount();
         }
-      });
-    });
+      }
 
-    // Adding event listeners for plus buttons
-    plusButtons.forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const productId = e.target.getAttribute("data-product-id");
+      // Plus button logic
+      if (target.classList.contains("plus")) {
+        const productId = target.getAttribute("data-product-id");
         const productInCart = cart
           .getCartItems()
-          .find((item) => item.id == productId); // Use '==' to ensure type coercion
+          .find((item) => item.id == productId);
 
         if (productInCart) {
           productInCart.quantity++;
-          storage.saveCart(cart.getCartItems()); // Save the updated cart to local storage
-          this.populateCartUI(); // Refresh the cart UI
-          this.updateCartCount(); // Update the cart count display
+          Storage.saveCart(cart.getCartItems());
+          this.populateCartUI();
+          this.updateCartCount();
         }
-      });
-    });
+      }
+    };
+
+    // Add the event listener for the first time
+    cartItemsElm.addEventListener("click", this.handleCartQuantityChange);
   }
 
   addRemoveButtonListeners() {
